@@ -69,7 +69,7 @@ class DocumentBuilder {
 
         $this->active = $this->stack[count($this->stack) - 1];
 
-        return $this;
+        return !!$popped;
     }
 
     public function writeText($text){

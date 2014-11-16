@@ -58,7 +58,9 @@ class Parser
                  */
 
                 $tagName = $this->getTagFromToken($token);
-                $doc->writeEndElement($tagName, $token);
+                if(!$doc->writeEndElement($tagName, $token))
+                    $doc->writeText($token);
+
             } else {
                 $doc->writeText($token);
             }
