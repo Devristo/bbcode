@@ -22,6 +22,7 @@ class Tidy {
 
     public function addBlockTag($tagName){
         $this->blockTags[self::normalize($tagName)] = true;
+        return $this;
     }
 
     public function removeBlockTag($tagName){

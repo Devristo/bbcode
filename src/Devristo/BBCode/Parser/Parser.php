@@ -110,7 +110,7 @@ class Parser
                     }
                     break;
                 case 'value':
-                    if(!preg_match('/[\s\]]/', $char))
+                    if(!preg_match('/[\s\],]/', $char))
                         $currentValue .= $char;
                     else {
                         $attributes[trim($currentKey)] = $currentValue;
