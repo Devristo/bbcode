@@ -16,7 +16,6 @@ class Tidy {
         $this->addBlockTag("#document");
     }
 
-
     protected static function normalize($tagName){
         return strtolower($tagName);
     }

@@ -22,8 +22,8 @@ class DocumentBuilder {
 
     public function __construct(){
         $this->active = new \DOMDocument();
-        $this->active->registerNodeClass('DOMElement', '\Devristo\BBCode\Parser\BBDomElement');
-        $this->active->registerNodeClass('DOMText', '\Devristo\BBCode\Parser\BBDomText');
+        $this->active->registerNodeClass('DOMElement', BBDomElement::class);
+        $this->active->registerNodeClass('DOMText', BBDomText::class);
         $this->stack = array($this->active);
     }
 
@@ -50,6 +50,8 @@ class DocumentBuilder {
         if(count($this->stack) == 1)
             return $this;
 
+        $popped = null;
+
         if($name === null)
             $popped = array_pop($this->stack);
         else {
@@ -62,7 +64,7 @@ class DocumentBuilder {
             }
         }
 
-        if($closeToken != null)
+        if($popped && $closeToken != null)
             $popped->setCloseToken($closeToken);
 
         $this->active = $this->stack[count($this->stack) - 1];

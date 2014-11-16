@@ -1,0 +1,15 @@
+{
+    "name": "devristo/bbcode",
+    "description": "BBCode parser",
+    "minimum-stability": "dev",
+    "license": "BSD",
+    "authors": [
+        {
+            "name": "Chris",
+            "email": "risto@live.nl"
+        }
+    ],
+    "autoload": {
+        "psr-0": {"Devristo\\": "src/"}
+    }
+}

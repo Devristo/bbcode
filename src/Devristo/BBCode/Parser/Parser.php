@@ -14,31 +14,24 @@ namespace Devristo\BBCode\Parser;
  */
 class Parser
 {
-    public $knownTokens = array();
-    public $_selfClosing = array();
+    protected $knownTokens = array();
+    protected $selfClosing = array();
+    protected $emoticons = array();
 
-
-    public function registerTags($tags)
+    public function registerSelfClosingTag($token)
     {
-        $this->knownTokens = $tags;
-    }
-
-    public function registerTag($token, $isSelfClosing = false)
-    {
-        $this->knownTokens[$token] = true;
-
-        if ($isSelfClosing)
-            $this->_selfClosing[$token] = true;
+        $token = strtolower($token);
+        $this->selfClosing[$token] = true;
 
         return $this;
     }
 
-    private function _buildTree($in, DocumentBuilder $doc)
+    private function buildTree($in, DocumentBuilder $doc)
     {
         $pattern = '$(\[(?:/[a-z]*|[a-z]+[^\]]*)\])(\n){0,1}$i';
 
         // TOKENIZE input stream
-        $tokens = preg_split($pattern, $in, null, PREG_SPLIT_DELIM_CAPTURE);
+        $tokens = preg_split($pattern, $in, -1, PREG_SPLIT_DELIM_CAPTURE);
         for ($i = 0; $i < count($tokens); $i++) {
             $token = $tokens[$i];
 
@@ -47,24 +40,24 @@ class Parser
              * - Append tag to parent
              * - Set node to take ownership of children
              */
-            if ($this->_isOpenTag($token) && ($attributes = $this->parseAttributes($token)) !== null) {
-                $tag = $this->_getTag($token);
+            if ($this->isOpenToken($token) && ($attributes = $this->parseAttributes($token)) !== null) {
+                $tag = $this->getTagFromToken($token);
                 $doc->writeStartElement($tag, $token);
 
                 foreach($attributes as $key => $value){
                     $doc->writeAttribute($key, $value);
                 }
 
-                if(array_key_exists($tag, $this->_selfClosing))
+                if(array_key_exists($tag, $this->selfClosing))
                     $doc->writeEndElement();
 
-            } elseif ($this->_isCloseTag($token)) {
+            } elseif ($this->isCloseToken($token)) {
                 /*
                  * If close tag matches open tag remove it from the stack
                  * Set node to parent
                  */
 
-                $tagName = self::_getTag($token);
+                $tagName = $this->getTagFromToken($token);
                 $doc->writeEndElement($tagName, $token);
             } else {
                 $doc->writeText($token);
@@ -144,9 +137,8 @@ class Parser
      */
     public function parse(DocumentBuilder $doc, $input)
     {
-
         try{
-            $root = self::_buildTree($input, $doc);
+            $root = $this->buildTree($input, $doc);
         } catch(\Exception $e){
             $root = new \DOMDocument();
             $root->appendChild(new \DOMText($input));
@@ -155,7 +147,11 @@ class Parser
         return $root;
     }
 
-    private static function _getTag($token)
+    public function addEmoticon($code){
+        $this->emoticons[$code] = true;
+    }
+
+    private function getTagFromToken($token)
     {
         $pattern = '$\[/?([a-z0-9]+)=?([^\]]*)\]$i';
         $matches = array();
@@ -167,33 +163,21 @@ class Parser
             return null;
     }
 
-    private function _isOpenTag($str)
+    private function isOpenToken($str)
     {
-
         if (strlen($str) == 0) return false;
 
         $matchFormat = $str[0] == '[' && ctype_alpha($str[1]);
 
         if (!$matchFormat) return false;
-
-        $tag = self::_getTag($str);
-
-        return true; //array_key_exists($tag, $this->knownTokens);
+        return $this->getTagFromToken($str);
     }
 
-    private function _isCloseTag($str)
+    private function isCloseToken($str)
     {
         if (strlen($str) == 0) return false;
-
-
         return preg_match('#^\[/[a-z0-9]*\]$#i', $str);
-
-        $matchFormat = $str[0] == '[' && $str[1] == '/';
-
-        if (!$matchFormat) return false;
-
-        $tag = self::_getTag($str);
-
-        return $tag == null; // || array_key_exists($tag, $this->knownTokens);
     }
+
+
 }

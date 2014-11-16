@@ -13,7 +13,7 @@ class RenderContext {
     private $defaultDecorator = null;
 
     protected function __construct($defaultDecorator=null, array $decorators = null){
-        $this->decorators = $decorators;
+        $this->decorators = $decorators ? $decorators : array();
         $this->defaultDecorator = $defaultDecorator;
     }
 
@@ -34,9 +34,6 @@ class RenderContext {
 
         $context = new self();
         $context->setDefaultDecorator(new VerbatimDecorator());
-        $context->setDecorator("#text", function(RenderContext $context, \DOMText $text){
-            return htmlentities($text->textContent);
-        });
 
         return $context;
     }
@@ -59,7 +56,7 @@ class RenderContext {
         return array_key_exists($name, $this->decorators) ? $this->decorators[$name] : $this->defaultDecorator;
     }
 
-    public function render(\DOMNode $node){
+    public function render($node){
         if($node->nodeName == '#text')
             $nodes = array($node);
         else $nodes = $node->childNodes;
