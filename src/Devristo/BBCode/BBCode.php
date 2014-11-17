@@ -134,7 +134,7 @@ class BBCode {
         foreach($parts as $word){
             $type = $this->identifyWord($word);
 
-            if(!$this->getLinkify() && $type=='url')
+            if((!$this->getLinkify() || $node->parentNode->nodeName == 'url') && $type=='url')
                 $type = 'text';
 
             if($type == 'text'){
