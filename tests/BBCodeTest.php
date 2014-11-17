@@ -31,6 +31,25 @@ class BBCodeTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals('<a href="http://google.com">http://google.com</a>', $html);
     }
 
+    public function test_special_chars(){
+        $bbcode = new BBCode();
+
+        $html = $bbcode->toHtml("& test");
+
+        $this->assertEquals("&amp; test", $html);
+    }
+
+    public function test_fb_url(){
+        $bbcode = new BBCode();
+
+        $url = 'https://fbcdn-sphotos-d-a.akamaihd.net/hphotos-ak-xpf1/v/t1.0-9/10696319_10205012977821422_2934828278482148800_n.jpg?oh=90e3fb3f5246e671411242211fa15a37&oe=54D830EF&__gda__=1427610000_e7379c9d9f0ff30de955928498a4623';
+        $html = $bbcode->toHtml("[img]{$url}[/img]");
+
+        $encoded = htmlentities($url);
+        $this->assertEquals("<img src=\"$encoded\">", $html);
+
+    }
+
     public function test_inbalanced(){
         $bbcode = new BBCode();
 

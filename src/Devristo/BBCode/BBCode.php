@@ -147,14 +147,20 @@ class BBCode {
                     $text = '';
                 }
 
-                $parentNode->insertBefore(new BBDomElement('url', $word), $node);
+                $url = $node->ownerDocument->createElement('url');
+                $url->appendChild(new BBDomText($word));
+
+                $parentNode->insertBefore($url, $node);
             }elseif($type == 'emoticon'){
                 if(strlen($text) > 0){
                     $parentNode->insertBefore(new BBDomText($text), $node);
                     $text = '';
                 }
 
-                $parentNode->insertBefore(new BBDomElement('emoticon', $word), $node);
+                $emoticon = $node->ownerDocument->createElement('emoticon');
+                $emoticon->appendChild(new BBDomText($word));
+
+                $parentNode->insertBefore($emoticon, $node);
             }
         }
 
