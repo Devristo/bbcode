@@ -75,6 +75,9 @@ class BBCode {
 
     public function addEmoticon($code){
         $this->emoticons[$code] = true;
+        uksort($this->emoticons, function($a, $b){
+            return strlen($b) - strlen($a);
+        });
         return $this;
     }
 
@@ -128,46 +131,106 @@ class BBCode {
     protected function parseText(BBDomText $node){
         $parentNode = $node->parentNode;
 
-        $parts = preg_split('#(\s+)#', $node->textContent, -1, PREG_SPLIT_DELIM_CAPTURE);
+        $text = $node->textContent;
+        $matches = array();
 
-        $text = '';
-        foreach($parts as $word){
-            $type = $this->identifyWord($word);
+        /*
+         * Find all URLS in the text node and retrieve their offsets
+         */
+        $markers = array(
+            0 => 'text',
+            strlen($text) => 'end'
+        );
 
-            if((!$this->getLinkify() || $node->parentNode->nodeName == 'url') && $type=='url')
-                $type = 'text';
+        if($this->getLinkify() && preg_match_all('/\\b(?P<url>(?:[a-z]+:\/\/|www.)[^\s$]+)/i', $text, $matches, PREG_OFFSET_CAPTURE)) {
+            $cursor = 0;
+            foreach ($matches['url'] as $match) {
+                $offset = $match[1];
+                $value = $match[0];
 
-            if($type == 'text'){
-                if($text == null)
-                    $text = $word;
-                else $text .= $word;
-            }else if($type == 'url'){
-                if(strlen($text) > 0) {
-                    $parentNode->insertBefore(new BBDomText($text), $node);
-                    $text = '';
-                }
+                if($offset >= $cursor && !array_key_exists($cursor, $markers))
+                    $markers[$cursor] = 'text';
 
-                $url = $node->ownerDocument->createElement('url');
-                $url->appendChild(new BBDomText($word));
+                $markers[$offset] = 'url';
 
-                $parentNode->insertBefore($url, $node);
-            }elseif($type == 'emoticon'){
-                if(strlen($text) > 0){
-                    $parentNode->insertBefore(new BBDomText($text), $node);
-                    $text = '';
-                }
-
-                $emoticon = $node->ownerDocument->createElement('emoticon');
-                $emoticon->appendChild(new BBDomText($word));
-
-                $parentNode->insertBefore($emoticon, $node);
+                $next = $offset+strlen($value);
+                if(!array_key_exists($next, $markers))
+                    $markers[$next] = 'text';
             }
         }
 
-        if(strlen($text) > 0)
-            $parentNode->insertBefore(new BBDomText($text), $node);
+        $smilies = $this->buildEmoticonTree();
 
-        $node->parentNode->removeChild($node);
+        $copyMarkers = $markers;
+        reset($copyMarkers);
+        while(($current = each($copyMarkers)) && ($next = each($copyMarkers))){
+            list($offset, $type) = $current;
+            list($end,) = $next;
+
+            if($type !== 'text')
+                return false;
+
+            $currentMatchingSet = $smilies;
+            $stack = '';
+            for($i=$offset; $i < $end + 1; $i++){
+                $char = $i < $end ? $text[$i] : '';
+
+                $newCharMatches = $char && array_key_exists($char, $currentMatchingSet);
+
+                // Oops new character wouldn't match any emoticons, but we did match a emoticon till now!
+                // Note: this also happens when we read past the end
+                if(!$newCharMatches && array_key_exists('', $currentMatchingSet)){
+                    $markers[$i-strlen($stack)] = 'emoticon';
+
+                    // Insert a marker right after the emoticon, if it doesn't exist already
+                    if(!array_key_exists($i, $markers))
+                        $markers[$i] = 'text';
+
+                    //
+                    $stack = '';
+                    $currentMatchingSet = $smilies;
+                }
+
+                // Character yields emoticon candidates, so add the char to the stack and prune the matching set
+                if(array_key_exists($char, $currentMatchingSet)){
+                    $currentMatchingSet = $currentMatchingSet[$char];
+                    $stack .= $char;
+                }
+                // No emoticons would be left, so ignore this char and start over
+                else {
+                    $stack = '';
+                    $currentMatchingSet = $smilies;
+                }
+            }
+
+        }
+
+        ksort($markers);
+        reset($markers);
+        $current = each($markers);
+        while($next = each($markers)){
+            list($start, $type) = $current;
+            list($end,) = $next;
+            $part = substr($text, $start, $end-$start);
+
+            $value = new BBDomText($part);
+
+            if($type == 'emoticon'){
+                $emoticon = $node->ownerDocument->createElement('emoticon');
+                $emoticon->appendChild($value);
+                $parentNode->insertBefore($emoticon, $node);
+            } elseif($type == 'url' && $this->getLinkify()){
+                $url = $node->ownerDocument->createElement('url');
+                $url->appendChild($value);
+                $parentNode->insertBefore($url, $node);
+            } else{
+                $parentNode->insertBefore($value, $node);
+            }
+
+            $current = $next;
+        }
+
+        $parentNode->removeChild($node);
     }
 
     private function postProcess(\DOMDocument $document){
@@ -200,5 +263,26 @@ class BBCode {
     public function toHtml($bbcode){
         $document = $this->toDocument($bbcode);
         return $this->renderContext->render($document);
+    }
+
+    private function buildEmoticonTree()
+    {
+        $smilies = array();
+        foreach($this->emoticons as $code => $value){
+            $node = &$smilies;
+
+            for($i=0; $i<strlen($code); $i++) {
+                $char = $code[$i];
+                if(!array_key_exists($char, $node))
+                    $node[$char] = array();
+
+                $node =& $node[$char];
+
+                if($i + 1 == strlen($code)){
+                    $node[''] = $code;
+                }
+            }
+        }
+        return $smilies;
     }
 }

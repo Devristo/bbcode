@@ -39,6 +39,49 @@ class BBCodeTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals("&amp; test", $html);
     }
 
+    public function test_auto_url_disable(){
+        $bbcode = new BBCode();
+
+        $bbcode->setLinkify(false);
+        $html = $bbcode->toHtml("Hello www.google.com");
+        $this->assertEquals('Hello www.google.com', $html);
+    }
+
+    public function test_emoticons_text(){
+        $bbcode = new BBCode();
+        $bbcode->addEmoticon(':))');
+        $bbcode->addEmoticon(':)');
+        $bbcode->addEmoticon(':D');
+        $bbcode->addEmoticon(':O');
+        $bbcode->addEmoticon('<:O');
+
+        $bbcode->getRenderContext()->setDecorator('emoticon', function(RenderContext $context, BBDomElement $element){
+            return sprintf(
+                "[emoticon]%s[/emoticon]",
+                $element->getInnerBB()
+            );
+        });
+
+        $html = $bbcode->toHtml('Hello:)):)www.google.com');
+        $this->assertEquals('Hello[emoticon]:))[/emoticon][emoticon]:)[/emoticon]<a href="http://www.google.com">www.google.com</a>', $html);
+    }
+
+    public function test_emoticons_multiple(){
+        $bbcode = new BBCode();
+        $bbcode->addEmoticon(':)');
+        $bbcode->addEmoticon(':(');
+
+        $bbcode->getRenderContext()->setDecorator('emoticon', function(RenderContext $context, BBDomElement $element){
+            return sprintf(
+                "[emoticon]%s[/emoticon]",
+                $element->getInnerBB()
+            );
+        });
+
+        $html = $bbcode->toHtml('Hello:):):(');
+        $this->assertEquals('Hello[emoticon]:)[/emoticon][emoticon]:)[/emoticon][emoticon]:([/emoticon]', $html);
+    }
+
     public function test_fb_url(){
         $bbcode = new BBCode();
 
