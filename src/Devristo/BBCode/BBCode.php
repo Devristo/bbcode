@@ -163,46 +163,45 @@ class BBCode {
 
         $copyMarkers = $markers;
         reset($copyMarkers);
-        while(($current = each($copyMarkers)) && ($next = each($copyMarkers))){
+        $current = each($copyMarkers);
+        while($next = each($copyMarkers)){
             list($offset, $type) = $current;
             list($end,) = $next;
 
-            if($type !== 'text')
-                return false;
+            if($type == 'text') {
+                $currentMatchingSet = $smilies;
+                $stack = '';
+                for ($i = $offset; $i < $end + 1; $i++) {
+                    $char = $i < $end ? $text[$i] : '';
 
-            $currentMatchingSet = $smilies;
-            $stack = '';
-            for($i=$offset; $i < $end + 1; $i++){
-                $char = $i < $end ? $text[$i] : '';
+                    $newCharMatches = $char && array_key_exists($char, $currentMatchingSet);
 
-                $newCharMatches = $char && array_key_exists($char, $currentMatchingSet);
+                    // Oops new character wouldn't match any emoticons, but we did match a emoticon till now!
+                    // Note: this also happens when we read past the end
+                    if (!$newCharMatches && array_key_exists('', $currentMatchingSet)) {
+                        $markers[$i - strlen($stack)] = 'emoticon';
 
-                // Oops new character wouldn't match any emoticons, but we did match a emoticon till now!
-                // Note: this also happens when we read past the end
-                if(!$newCharMatches && array_key_exists('', $currentMatchingSet)){
-                    $markers[$i-strlen($stack)] = 'emoticon';
+                        // Insert a marker right after the emoticon, if it doesn't exist already
+                        if (!array_key_exists($i, $markers))
+                            $markers[$i] = 'text';
 
-                    // Insert a marker right after the emoticon, if it doesn't exist already
-                    if(!array_key_exists($i, $markers))
-                        $markers[$i] = 'text';
+                        //
+                        $stack = '';
+                        $currentMatchingSet = $smilies;
+                    }
 
-                    //
-                    $stack = '';
-                    $currentMatchingSet = $smilies;
-                }
-
-                // Character yields emoticon candidates, so add the char to the stack and prune the matching set
-                if(array_key_exists($char, $currentMatchingSet)){
-                    $currentMatchingSet = $currentMatchingSet[$char];
-                    $stack .= $char;
-                }
-                // No emoticons would be left, so ignore this char and start over
-                else {
-                    $stack = '';
-                    $currentMatchingSet = $smilies;
+                    // Character yields emoticon candidates, so add the char to the stack and prune the matching set
+                    if (array_key_exists($char, $currentMatchingSet)) {
+                        $currentMatchingSet = $currentMatchingSet[$char];
+                        $stack .= $char;
+                    } // No emoticons would be left, so ignore this char and start over
+                    else {
+                        $stack = '';
+                        $currentMatchingSet = $smilies;
+                    }
                 }
             }
-
+            $current = $next;
         }
 
         ksort($markers);

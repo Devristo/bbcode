@@ -114,12 +114,20 @@ class BBCodeTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals('<a href="mailto:chris@example.com">chris@example.com</a>', $html, "Default renderer should make sure mailto is prepended if email address is set as url");
     }
 
+    public function test_auto_url_only_url(){
+        $bbcode = new BBCode();
+
+        $html = $bbcode->toHtml("www.google.com");
+        $this->assertEquals('<a href="http://www.google.com">www.google.com</a>', $html);
+    }
+
     public function test_auto_url(){
         $bbcode = new BBCode();
 
         $html = $bbcode->toHtml("Hello www.google.com");
         $this->assertEquals('Hello <a href="http://www.google.com">www.google.com</a>', $html);
     }
+
 
     public function test_url_simple(){
         $bbcode = new BBCode();
