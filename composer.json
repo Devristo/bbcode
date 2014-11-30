@@ -1,7 +1,7 @@
 {
     "name": "devristo/bbcode",
-    "description": "BBCode parser",
-    "minimum-stability": "dev",
+    "description": "A simple yet flexible BBCode parser for PHP 5.4 and higher.",
+    "minimum-stability": "stable",
     "license": "BSD",
     "authors": [
         {
@@ -10,6 +10,11 @@
         }
     ],
     "autoload": {
-        "psr-0": {"Devristo\\": "src/"}
+        "psr-4": {
+            "Devristo\\BBCode\\": "src/"
+        }
+    },
+    "require" : {
+        "php": ">=5.4.0"
     }
 }

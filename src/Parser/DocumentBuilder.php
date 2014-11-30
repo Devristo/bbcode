@@ -22,13 +22,17 @@ class DocumentBuilder {
 
     public function __construct(){
         $this->active = new \DOMDocument();
-        $this->active->registerNodeClass('DOMElement', BBDomElement::class);
-        $this->active->registerNodeClass('DOMText', BBDomText::class);
+        $this->active->registerNodeClass('DOMElement', '\Devristo\BBCode\Parser\BBDomElement');
+        $this->active->registerNodeClass('DOMText', '\Devristo\BBCode\Parser\BBDomText');
         $this->stack = array($this->active);
     }
 
     public function writeStartElement($name, $openToken=null){
-        $element = $this->stack[0]->createElement($name);
+        /** @var \DOMDocument $domDocument */
+        $domDocument = $this->stack[0];
+
+        /** @var BBDomElement $element */
+        $element = $domDocument->createElement($name);
 
         if($openToken)
             $element->setOpenToken($openToken);

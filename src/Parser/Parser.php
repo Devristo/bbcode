@@ -134,6 +134,7 @@ class Parser
 
     /**
      * Parses and renders the UBB code supplied
+     * @param DocumentBuilder $doc The DocumentBuilder to parse the input to
      * @param string $input The TopicPost object or raw string to parse
      * @return \DOMDocument Returns the rendered HTML.
      */

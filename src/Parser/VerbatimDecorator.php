@@ -15,5 +15,7 @@ class VerbatimDecorator {
             return $node->textContent;
         elseif($node instanceof BBDomElement)
             return $node->getOpenToken().$context->render($node).$node->getCloseToken();
+
+        return new \InvalidArgumentException("A DOMText node or a BBDomElement should be passed as second argument");
     }
 } 
