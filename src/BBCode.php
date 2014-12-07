@@ -142,7 +142,7 @@ class BBCode {
             strlen($text) => 'end'
         );
 
-        if($this->getLinkify() && preg_match_all('/\\b(?P<url>(?:[a-z]+:\/\/|www.)[^\s$]+)/i', $text, $matches, PREG_OFFSET_CAPTURE)) {
+        if($this->getLinkify() && preg_match_all('/\\b(?P<url>(?:[a-z]+:\/\/|www.)[^\s$\'"]+)/i', $text, $matches, PREG_OFFSET_CAPTURE)) {
             $cursor = 0;
             foreach ($matches['url'] as $match) {
                 $offset = $match[1];

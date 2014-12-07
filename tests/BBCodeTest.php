@@ -128,6 +128,12 @@ class BBCodeTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals('Hello <a href="http://www.google.com">www.google.com</a>', $html);
     }
 
+    public function test_auto_url_html(){
+        $bbcode = new BBCode();
+
+        $html = $bbcode->toHtml('<a href="http://google.com">spammers test </a>');
+        $this->assertEquals('&lt;a href="<a href="http://google.com">http://google.com</a>"&gt;spammers test &lt;/a&gt;', $html);
+    }
 
     public function test_url_simple(){
         $bbcode = new BBCode();
@@ -179,6 +185,5 @@ class BBCodeTest extends \PHPUnit_Framework_TestCase {
         $html = $bbcode->toHtml('Hello :)');
         $this->assertEquals('Hello [emoticon]:)[/emoticon]', $html);
     }
-
 }
  
