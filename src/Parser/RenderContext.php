@@ -52,7 +52,7 @@ class RenderContext {
      * @param $name
      * @return callable
      */
-    protected function getDecorator($name){
+    public function getDecorator($name){
         return array_key_exists($name, $this->decorators) ? $this->decorators[$name] : $this->defaultDecorator;
     }
 
