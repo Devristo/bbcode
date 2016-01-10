@@ -11,8 +11,6 @@ namespace Devristo\BBCode;
 use Devristo\BBCode\Parser\BBDomElement;
 use Devristo\BBCode\Parser\RenderContext;
 
-require_once(__DIR__."/../vendor/autoload.php");
-
 
 class BBCodeTest extends \PHPUnit_Framework_TestCase {
     /**
@@ -184,6 +182,23 @@ class BBCodeTest extends \PHPUnit_Framework_TestCase {
 
         $html = $bbcode->toHtml('Hello :)');
         $this->assertEquals('Hello [emoticon]:)[/emoticon]', $html);
+    }
+
+    public function test_smiley_after_url() {
+        $bbcode = new BBCode();
+        $bbcode->addEmoticon(':)');
+
+        $bbcode->getRenderContext()->removeAllDecorators();
+
+        $bbcode->getRenderContext()->setDecorator('emoticon', function(RenderContext $context, BBDomElement $element){
+            return sprintf(
+                "[emoticon]%s[/emoticon]",
+                $element->getInnerBB()
+            );
+        });
+
+        $html = $bbcode->toHtml('https://www.google.com/ :)');
+        $this->assertEquals('https://www.google.com/ [emoticon]:)[/emoticon]', $html);
     }
 }
  

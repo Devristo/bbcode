@@ -159,6 +159,8 @@ class BBCode {
             }
         }
 
+        ksort($markers);
+
         $smilies = $this->buildEmoticonTree();
 
         $copyMarkers = $markers;
