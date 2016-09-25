@@ -13,5 +13,8 @@ branches:
   only:
     - master
 
+install:
+  - composer install --no-dev
+
 script:
   - phpunit -c phpunit.xml.dist --coverage-clover build/logs/clover.xml
