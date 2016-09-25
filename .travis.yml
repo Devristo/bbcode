@@ -1,0 +1,17 @@
+language: php
+
+php:
+  - 7.0
+
+sudo: false
+
+cache:
+  directories:
+    - vendor
+
+branches:
+  only:
+    - master
+
+script:
+  - phpunit -c phpunit.xml.dist --coverage-clover build/logs/clover.xml
