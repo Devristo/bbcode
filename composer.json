@@ -2,7 +2,7 @@
     "name": "devristo/bbcode",
     "description": "A simple yet flexible BBCode parser for PHP 5.4 and higher.",
     "minimum-stability": "stable",
-    "license": "BSD",
+    "license": "BSD-2-Clause",
     "authors": [
         {
             "name": "Chris",
