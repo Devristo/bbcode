@@ -162,9 +162,14 @@ class BBCode {
         $smilies = $this->buildEmoticonTree();
 
         $copyMarkers = $markers;
-        reset($copyMarkers);
-        $current = each($copyMarkers);
-        while($next = each($copyMarkers)){
+
+        $offsets = array_keys($copyMarkers);
+        $values = array_values($copyMarkers);
+
+        for ($i=1; $i<count($copyMarkers); $i++) {
+            $current = [$offsets[$i-1], $values[$i-1]];
+            $next = [$offsets[$i], $values[$i]];
+
             list($offset, $type) = $current;
             list($end,) = $next;
 
@@ -201,13 +206,18 @@ class BBCode {
                     }
                 }
             }
-            $current = $next;
         }
 
         ksort($markers);
         reset($markers);
-        $current = each($markers);
-        while($next = each($markers)){
+
+        $offsets = array_keys($markers);
+        $values = array_values($markers);
+
+        for ($i=1; $i<count($markers); $i++) {
+            $current = [$offsets[$i-1], $values[$i-1]];
+            $next = [$offsets[$i], $values[$i]];
+
             list($start, $type) = $current;
             list($end,) = $next;
             $part = substr($text, $start, $end-$start);
@@ -225,8 +235,6 @@ class BBCode {
             } else{
                 $parentNode->insertBefore($value, $node);
             }
-
-            $current = $next;
         }
 
         $parentNode->removeChild($node);
